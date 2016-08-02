@@ -1,7 +1,48 @@
+(* Problem 1 *)
+
 fun same_string (s1 : string, s2 : string) =
     s1 = s2
 
-(* all_except_option("hello", ["fuck", "sleep", "hello", "mute", "sick"]); *)
+fun all_except_option (str, strlist) =
+    case strlist of
+        [] => NONE
+      | s::strlist' => if same_string(s, str)
+                       then SOME strlist'
+                       else case all_except_option(str, strlist') of
+                           NONE => NONE
+                         | SOME lst => SOME (s :: lst)
+
+fun get_substitutions1 (nlist, str) =
+    case nlist of
+        [] => []
+      | n::nlist' => case all_except_option(str, n) of
+                         NONE => [] @ get_substitutions1(nlist', str)
+                       | SOME lst => lst @ get_substitutions1(nlist', str)
+
+fun get_substitutions2 (nlist, str) =
+    let fun helper (nlst, s, res) =
+        case nlst of
+            [] => res
+          | n::nlst' => case all_except_option(s, n) of
+                            NONE => helper(nlst', s, res)
+                          | SOME lst => helper(nlst', s, res @ lst)
+    in
+        helper(nlist, str, [])
+    end
+
+fun similar_names (nlist, {first=x, last=z, middle=y}) =
+    let fun f (nlst, s) =
+        case nlst of
+            [] => []
+          | n::nlst' => {first=n, last=z, middle=y} :: f(nlst', s)
+    in
+        case nlist of
+            [] => {first=x, last=z, middle=y} :: []
+          | _ => {first=x, last=z, middle=y}
+                 :: f(get_substitutions2(nlist, x), x)
+    end
+
+(* Problem 2 *)
 
 datatype suit = Clubs | Diamonds | Hearts | Spades
 datatype rank = Jack | Queen | King | Ace | Num of int 
@@ -22,7 +63,6 @@ fun card_value card =
       | (_, Ace) => 11
       | _ => 10
 
-(* TO BE THOUGHT *)
 fun remove_card (cs, c, e) =
     case cs of
         [] => raise e
@@ -35,7 +75,7 @@ fun all_same_color cards =
         [] => true
       | _::[] => true
       | c1::c2::rest => card_color c1 = card_color c2
-                        andalso all_same_color rest
+                        andalso all_same_color (c2::rest)
 
 fun sum_cards cards =
     let fun helper (c, sum) =
@@ -52,11 +92,11 @@ fun score (held_cards, goal) =
     in
         if all_same_color held_cards then pre_score div 2 else pre_score
     end
-
+(*
 fun officiate (clist, mvlist, goal) =
     let fun helper (clist, mvlist, goal) =
         case (clist, mvlist, goal) of
             ([], _, _) => score
             (_, Discard c, _) => XXX
             (_, Draw, _) =>
-
+*)
