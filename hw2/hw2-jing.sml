@@ -94,20 +94,19 @@ fun score (held_cards, goal) =
     end
 
 fun officiate (clist, mvlist, goal) =
-    let fun helper (held_cards, clist, mvlist, goal) =
+    let fun helper (held_cards, clist, mvlist) =
         case mvlist of
             [] => score(held_cards, goal)
-          | fst::rst => case (held_cards, clist, fst, goal) of
-                            (_, _, Discard c, _) => helper(remove_card(held_cards, c, IllegalMove), clist, rst, goal)
-                          | (_, clist, Draw, _) => case clist of
-                                                       [] => score(held_cards, goal)
-                                                     | cd::clist' => let val res = cd :: held_cards
-                                                                     in
-                                                                         if sum_cards(res) > goal
-                                                                         then score(held_cards, goal)
-                                                                         else helper(res, clist', rst, goal)
-                                                                     end
+          | (Discard c)::rst  => helper(remove_card(held_cards, c, IllegalMove), clist, rst)
+          | Draw::rst => case clist of
+                             [] => score(held_cards, goal)
+                           | cd::clist' => let val res = cd :: held_cards
+                                           in
+                                               if sum_cards(res) > goal
+                                               then score(res, goal)
+                                               else helper(res, clist', rst)
+                                           end
     in
-        helper([], clist, mvlist, goal)
+        helper([], clist, mvlist)
     end
 
