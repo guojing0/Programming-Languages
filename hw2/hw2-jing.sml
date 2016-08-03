@@ -92,11 +92,22 @@ fun score (held_cards, goal) =
     in
         if all_same_color held_cards then pre_score div 2 else pre_score
     end
-(*
+
 fun officiate (clist, mvlist, goal) =
-    let fun helper (clist, mvlist, goal) =
-        case (clist, mvlist, goal) of
-            ([], _, _) => score
-            (_, Discard c, _) => XXX
-            (_, Draw, _) =>
-*)
+    let fun helper (held_cards, clist, mvlist, goal) =
+        case mvlist of
+            [] => score(held_cards, goal)
+          | fst::rst => case (held_cards, clist, fst, goal) of
+                            (_, _, Discard c, _) => helper(remove_card(held_cards, c, IllegalMove), clist, rst, goal)
+                          | (_, clist, Draw, _) => case clist of
+                                                       [] => score(held_cards, goal)
+                                                     | cd::clist' => let val res = cd :: held_cards
+                                                                     in
+                                                                         if sum_cards(res) > goal
+                                                                         then score(held_cards, goal)
+                                                                         else helper(res, clist', rst, goal)
+                                                                     end
+    in
+        helper([], clist, mvlist, goal)
+    end
+
